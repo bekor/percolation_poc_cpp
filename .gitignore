@@ -2,7 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,c++,rust,cmake
 
 ### Generated ###
-*.txt
+*log*.txt
+*metrics*.txt
 
 ### C++ ###
 # Build
