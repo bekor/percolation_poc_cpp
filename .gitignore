@@ -4,6 +4,7 @@
 ### Generated ###
 *log*.txt
 *metrics*.txt
+/plotter/*.png
 
 ### C++ ###
 # Build
