@@ -23,3 +23,11 @@ void print_metrics(std::string_view title, const std::array<double, 200>& metric
     }
     std::cout << "-----------------" << std::endl;
 }
+
+void print_config(const Configuration& config){
+    std::cout << "Number of simulation run : " << config.simulation_number() << "\n"
+                << " from: " << config.get_probability_range().get_from() 
+                << " to: " << config.get_probability_range().get_from() 
+                << " step: " << config.get_probability_range().prob_step()
+                << "\n";
+}

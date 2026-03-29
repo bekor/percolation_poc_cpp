@@ -34,7 +34,7 @@ public:
     Configuration(unsigned int sim_number, ProbabilityRange prob_range);
     ~Configuration() = default;
 
-    unsigned int get_simulation_number() const { return sim_number; }
+    unsigned int simulation_number() const { return sim_number; }
     const ProbabilityRange& get_probability_range() const { return prob_range; }
 
 private:

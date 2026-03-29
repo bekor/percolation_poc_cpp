@@ -7,7 +7,7 @@ void Simulation::run_simulation(){
     prb_matrix probability_matrix{};
     std::bitset<9> matrix{};
 
-    const unsigned int sim_num = config.get_simulation_number();
+    const unsigned int sim_num = config.simulation_number();
     const u16 from = config.get_probability_range().scaled_prob_from();
     const u16 to = config.get_probability_range().scaled_prob_to();
     const u16 prob_step = config.get_probability_range().prob_step();

@@ -46,18 +46,11 @@ int main() {
     const u16 step_number = 200;
     const ProbabilityRange prob_range{probability_from, probability_to, step_number};
 
-    const u16 scaled_prob_from = prob_range.scaled_prob_from();
-    u16 scaled_prob_to = prob_range.scaled_prob_to();
-    u16 prob_step = prob_range.prob_step();
-    
-
-    std::cout << "from : " << scaled_prob_from 
-              << ", to: " << scaled_prob_to 
-              << " step: " << prob_step << "\n";
-    
-    write_paremeters(simulation_num, scaled_prob_from, scaled_prob_to, prob_step, OUTPUT_FILE);
-
     Configuration config{simulation_num, prob_range};
+    print_config(config);
+
+    write_paremeters(simulation_num, prob_range, OUTPUT_FILE);
+
     Simulation simulation{config};
     std::cout << " START SUMULATION " << std::endl;
     simulation.run_simulation();

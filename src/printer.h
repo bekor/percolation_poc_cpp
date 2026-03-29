@@ -5,6 +5,8 @@
 #include <bitset>
 #include <string_view>
 
+#include "config.h"
+
 template<typename T, size_t ROW, size_t COL>
 void print_matrix(const std::array<std::array<T, COL>, ROW>& matrix){
     for(size_t row = 0; row < ROW; ++row){
@@ -19,3 +21,5 @@ void print_matrix(const std::array<std::array<T, COL>, ROW>& matrix){
 void print_bit_matrix(const std::bitset<9>& matrix);
 
 void print_metrics(std::string_view title, const std::array<double, 200>& metrics);
+
+void print_config(const Configuration& config);
