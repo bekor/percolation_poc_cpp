@@ -14,7 +14,7 @@ void write_results(const std::array<double, 200>& avg_activation,
         file << v << "\n";
 }
 
-void write_paremeters(u16 sim_count, u16 from_prob, u16 to_prob, u16 prob_step, std::string_view filename) {
+void write_paremeters(u32 sim_count, u16 from_prob, u16 to_prob, u16 prob_step, std::string_view filename) {
     std::ofstream file(filename);
     file << "SIM_COUNT:" << sim_count
          << ",FROM:" << from_prob

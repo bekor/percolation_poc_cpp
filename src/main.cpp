@@ -40,9 +40,11 @@ void generate_metrics(const Metrics& metrics){
 
 
 int main() {
-    const unsigned int simulation_num = 10000;
-
-    const ProbabilityRange prob_range{15, 85, 199};
+    const u32 simulation_num = 100000;
+    const u16 probability_from = 10;
+    const u16 probability_to = 90;
+    const u16 step_number = 200;
+    const ProbabilityRange prob_range{probability_from, probability_to, step_number};
 
     const u16 scaled_prob_from = prob_range.scaled_prob_from();
     u16 scaled_prob_to = prob_range.scaled_prob_to();

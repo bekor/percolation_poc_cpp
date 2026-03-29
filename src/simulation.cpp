@@ -12,13 +12,12 @@ void Simulation::run_simulation(){
     const u16 to = config.get_probability_range().scaled_prob_to();
     const u16 prob_step = config.get_probability_range().prob_step();
     metrics.simulation_num = sim_num;
-
+    
     for(unsigned int i = 0; i < sim_num; ++i){
         populate_prob_matrix(probability_matrix);
         bool has_spanning = false;
         for(u16 prob = from; prob < to; prob += prob_step){
             u16 step = (prob - from) / prob_step;
-
             set_activation_matrix(prob, probability_matrix, matrix);
             auto population = matrix.count();
 
@@ -34,7 +33,6 @@ void Simulation::run_simulation(){
                 }
             }
             metrics.activation_per_run.at(step) += population;
-
         }
     }
 }
