@@ -1,0 +1,10 @@
+{
+    "simulation_number": 100,
+    "matrix_rows": 3,
+    "matrix_cols": 3,
+    "probability": {
+        "from": 15,
+        "to": 85,
+        "step": 200
+    }
+}

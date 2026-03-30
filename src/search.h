@@ -1,5 +1,6 @@
 #pragma once
-#include <bitset>
+#include "matrix.hpp"
 
-// TODO: if bitset size changes this have to change too!!
-bool bfs(const std::bitset<9>& matrix, int start);
+typedef uint16_t u16;
+
+bool bfs(const Matrix<bool>& matrix, u16 start_row, u16 start_col);

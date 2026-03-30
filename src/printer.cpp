@@ -1,15 +1,11 @@
 #include "printer.h"
 #include <numeric>
 
-// TODO: if bitset size changes this have to change too!!
-const static size_t ROW = 3;
-const static size_t COL = 3;
-
-void print_bit_matrix(const std::bitset<9>& matrix){
+void print_bit_matrix(const Matrix<bool>& matrix){
     std::cout << "The matrix: " << std::endl;
-    for(size_t row = 0; row < ROW; ++row){
-        for(size_t col = 0; col < COL; ++col){
-            std::cout << matrix[row*3 + col];
+    for(size_t row = 0; row < matrix.rows(); ++row){
+        for(size_t col = 0; col < matrix.cols(); ++col){
+            std::cout << matrix(row, col);
         }
         std::cout << std::endl;
     }
@@ -26,8 +22,8 @@ void print_metrics(std::string_view title, const std::array<double, 200>& metric
 
 void print_config(const Configuration& config){
     std::cout << "Number of simulation run : " << config.simulation_number() << "\n"
-                << " from: " << config.get_probability_range().get_from() 
-                << " to: " << config.get_probability_range().get_from() 
+                << " from: " << config.get_probability_range().scaled_prob_from() 
+                << " to: " << config.get_probability_range().scaled_prob_to() 
                 << " step: " << config.get_probability_range().prob_step()
                 << "\n";
 }

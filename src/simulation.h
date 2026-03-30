@@ -1,15 +1,15 @@
 #pragma once
 #include "config.h"
+#include "matrix.hpp"
+
 #include <array>
-#include <bitset>
 #include <cstdint>
 #include <algorithm>
+
 
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef std::array<u32, 200> metrics_array;
-using prb_matrix = std::array<std::array<u16, 3>, 3>;     // TODO: if bitset size changes this have to change too!!
-
 
 struct Metrics {
     metrics_array activation_per_run{};
@@ -28,9 +28,8 @@ private:
     const Configuration& config;
     Metrics metrics{};
 
-    static auto uniform_random();
-    void populate_prob_matrix(prb_matrix& matrix);
-    void set_activation_matrix(u16 probability, const prb_matrix& prob_matrix, std::bitset<9>& matrix);
-    bool has_spanning_cluster(const std::bitset<9>& matrix);
+    void populate_prob_matrix(Matrix<u16>& matrix);
+    void set_activation_matrix(u16 probability, const Matrix<u16>& prob_matrix, Matrix<bool>& matrix);
+    bool has_spanning_cluster(const Matrix<bool>& matrix);
 };
 
