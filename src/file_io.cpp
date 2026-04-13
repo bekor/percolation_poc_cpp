@@ -3,10 +3,11 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 json try_to_open(const std::filesystem::path& path) {
     if(!std::filesystem::exists(path)) {
-        std::cerr << "Cannot open config file: " << path << std::endl;
+        std::cerr << "File does not exists: " << path << std::endl;
     }
 
     std::ifstream file(path);
@@ -21,7 +22,7 @@ json try_to_open(const std::filesystem::path& path) {
     return data;
 }
 
-Configuration read_config(const std::filesystem::path& path){
+Configuration read_config(const std::filesystem::path& path, std::string_view dir_path){
     json data = try_to_open(path);
 
     unsigned int sim_num = data["simulation_number"].get<unsigned int>();
@@ -30,10 +31,12 @@ Configuration read_config(const std::filesystem::path& path){
     u16 from      = data["probability"]["from"].get<u16>();
     u16 to        = data["probability"]["to"].get<u16>();
     u16 step      = data["probability"]["step"].get<u16>();
+    std::string mfn  = data["metrics_file_name"].get<std::string>();
     return Configuration{
         sim_num,
         ProbabilityRange{from, to, step},
-        mx_row, mx_col
+        mx_row, mx_col,
+        dir_path, mfn
     };
 }
 
@@ -50,14 +53,13 @@ void write_results(const std::array<double, 200>& avg_activation,
     file << out_json.dump(4);
 }
 
-void write_paremeters(const Configuration& config, 
-                      const std::filesystem::path& path) {
+void write_paremeters(const Configuration& config) {
     auto prob_range = config.get_probability_range();
     u16 from_prob = prob_range.scaled_prob_from();
     u16 to_prob = prob_range.scaled_prob_to();
     u16 prob_step = prob_range.prob_step();
 
-    json out_json = try_to_open(path);
+    json out_json = try_to_open(config.get_metrics_file());
     out_json["config"] = {
         {"simulation_number", config.simulation_number()},
         {"prob_from"        , from_prob},
@@ -67,6 +69,6 @@ void write_paremeters(const Configuration& config,
         {"matrix_col"       , config.get_matrix_col()}
     };
 
-    std::ofstream file(path);
+    std::ofstream file(config.get_metrics_file());
     file << out_json.dump(4);
 }

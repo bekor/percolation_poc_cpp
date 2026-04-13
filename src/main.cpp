@@ -12,10 +12,9 @@
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef std::array<u32, 200> metrics_array;
-constexpr std::string_view OUTPUT_FILE = "percolation_metrics.txt";
 constexpr std::string_view CONFIG_JSON = "config.json";
 
-void generate_metrics(const Metrics& metrics){
+void generate_metrics(const Metrics& metrics, const std::filesystem::path out_path){
     const metrics_array activation = metrics.activation_per_run;
     const metrics_array spanning_at_prob = metrics.spanning_at_prob;
     const unsigned int simulation_num = metrics.simulation_num;
@@ -34,20 +33,20 @@ void generate_metrics(const Metrics& metrics){
     }
     print_metrics("Avg spanning at probability: ", avg_norm_spanning);
 
-    write_results(avg_activation_per_run, avg_norm_spanning, std::filesystem::path(RESOURCES_DIR)/OUTPUT_FILE);
+    write_results(avg_activation_per_run, avg_norm_spanning, out_path);
 }
 
 
 int main() {
-    Configuration config = read_config(std::filesystem::path(RESOURCES_DIR)/ CONFIG_JSON);
+    Configuration config = read_config(std::filesystem::path(RESOURCES_DIR)/ CONFIG_JSON, RESOURCES_DIR);
     print_config(config);
 
-    write_paremeters(config, std::filesystem::path(RESOURCES_DIR)/OUTPUT_FILE);
+    write_paremeters(config);
 
     Simulation simulation{config};
     std::cout << " START SUMULATION " << std::endl;
     simulation.run_simulation();
     std::cout << " END SUMULATION " << std::endl;
     Metrics metrics = simulation.get_metrics();
-    generate_metrics(metrics);
+    generate_metrics(metrics, config.get_metrics_file());
 }

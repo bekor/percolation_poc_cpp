@@ -6,5 +6,6 @@
         "from": 15,
         "to": 85,
         "step": 200
-    }
+    },
+    "metrics_file_name": "percolation_metrics"
 }

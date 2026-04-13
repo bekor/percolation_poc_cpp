@@ -48,7 +48,9 @@ void Simulation::populate_prob_matrix(Matrix<u16>& matrix) {
     std::generate(matrix.begin(), matrix.end(), uniform_random);
 }
 
-void Simulation::set_activation_matrix(u16 probability, const Matrix<u16>& prob_matrix, Matrix<bool>& matrix) {
+void Simulation::set_activation_matrix(u16 probability, 
+                                       const Matrix<u16>& prob_matrix, 
+                                       Matrix<bool>& matrix) {
     for(size_t row = 0; row < prob_matrix.rows(); ++row){
         for(size_t col = 0; col < prob_matrix.cols(); ++col){
             matrix.at(row, col) = (prob_matrix(row, col) <= probability);
@@ -57,9 +59,6 @@ void Simulation::set_activation_matrix(u16 probability, const Matrix<u16>& prob_
 }
 
 bool Simulation::has_spanning_cluster(const Matrix<bool>& matrix){
-    // if (matrix.count(false) == matrix.size())
-    //     return false;
-
     bool end_reached = false;
     for(int row = 0; row < matrix.rows(); ++row){
         end_reached = bfs(matrix, row, 0);

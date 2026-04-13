@@ -25,5 +25,6 @@ void print_config(const Configuration& config){
                 << " from: " << config.get_probability_range().scaled_prob_from() 
                 << " to: " << config.get_probability_range().scaled_prob_to() 
                 << " step: " << config.get_probability_range().prob_step()
+                << " output file: " << config.get_metrics_file()
                 << "\n";
 }
