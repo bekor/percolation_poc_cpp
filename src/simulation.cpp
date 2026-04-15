@@ -4,6 +4,7 @@
 
 #include "search.h"
 #include "interaction.h"
+#include "printer.h"
 
 namespace {
     u16 uniform_random() {
@@ -28,13 +29,19 @@ void Simulation::run_simulation(){
     metrics.simulation_num = sim_num;
     for(unsigned int i = 0; i < sim_num; ++i){
         populate_prob_matrix(probability_matrix);
+        print_matrix(probability_matrix);
         bool has_spanning = false;
         for(u16 step = 0; step < num_steps; ++step){
             u16 prob = from + step * prob_step;
             set_activation_matrix(prob, probability_matrix, matrix);
+            print_bit_matrix(matrix);
             // apply interaction (van der Waals or other)
-            if(config.is_interactions())
-                interaction(probability_matrix, matrix, config.get_interaction_radius());
+            if(config.is_interactions()){
+                auto updated_prob = interaction(probability_matrix, matrix, config.get_interaction_radius());
+                print_matrix(updated_prob);
+                probability_matrix = updated_prob;
+            }
+
             auto population = matrix.count(true);
 
             if(!has_spanning){

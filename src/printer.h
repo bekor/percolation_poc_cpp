@@ -6,11 +6,12 @@
 #include "matrix.hpp"
 #include "config.h"
 
-template<typename T, size_t ROW, size_t COL>
-void print_matrix(const std::array<std::array<T, COL>, ROW>& matrix){
-    for(size_t row = 0; row < ROW; ++row){
-        for(size_t col = 0; col < COL; ++col){
-            std::cout << matrix.at(row).at(col);
+template<typename T>
+void print_matrix(const Matrix<T>& matrix){
+    std::cout << "----------\n";
+    for(size_t row = 0; row < matrix.rows(); ++row){
+        for(size_t col = 0; col < matrix.cols(); ++col){
+            std::cout << matrix[row, col] << " | ";
         }
         std::cout << std::endl;
     }
