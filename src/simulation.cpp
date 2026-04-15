@@ -3,6 +3,7 @@
 #include <random>
 
 #include "search.h"
+#include "interaction.h"
 
 namespace {
     u16 uniform_random() {
@@ -31,6 +32,9 @@ void Simulation::run_simulation(){
         for(u16 step = 0; step < num_steps; ++step){
             u16 prob = from + step * prob_step;
             set_activation_matrix(prob, probability_matrix, matrix);
+            // apply interaction (van der Waals or other)
+            if(config.is_interactions())
+                interaction(probability_matrix, matrix, config.get_interaction_radius());
             auto population = matrix.count(true);
 
             if(!has_spanning){
@@ -67,4 +71,5 @@ bool Simulation::has_spanning_cluster(const Matrix<bool>& matrix) {
     }
     return end_reached;
 }
+
 
