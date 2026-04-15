@@ -29,8 +29,8 @@ public:
         return matrix_[row * col_ + col];
     }
 
-    E& operator()(u16 row, u16 col) { return matrix_[row * col_ + col]; }
-    const E& operator()(u16 row, u16 col) const { return matrix_[row * col_ + col]; }
+    E& operator[](u16 row, u16 col) { return matrix_[row * col_ + col]; }
+    const E& operator[](u16 row, u16 col) const { return matrix_[row * col_ + col]; }
 
     auto begin()       { return matrix_.begin(); }
     auto end()         { return matrix_.end(); }
@@ -70,11 +70,11 @@ public:
         return matrix_[row * col_ + col];
     }
 
-    std::vector<bool>::reference operator()(u16 row, u16 col) {
+    std::vector<bool>::reference operator[](u16 row, u16 col) {
         return matrix_[row * col_ + col];
     }
 
-    bool operator()(u16 row, u16 col) const {
+    bool operator[](u16 row, u16 col) const {
         return matrix_[row * col_ + col];
     }
 

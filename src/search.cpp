@@ -8,7 +8,7 @@
 typedef uint16_t u16;
 
 static bool is_end(const Matrix<bool>& matrix, u16 current_row, u16 current_col){
-    return matrix(current_row, current_col) 
+    return matrix[current_row, current_col]
             && (matrix.cols()-1) == current_col;   
 }
 
@@ -34,7 +34,7 @@ std::vector<std::tuple<u16, u16>> find_neighbors(const Matrix<bool>& matrix, u16
 
         int position = next_row * matrix.cols() + next_col;
 
-        if(!matrix(next_row, next_col) || is_visited(position))
+        if(!matrix[next_row, next_col] || is_visited(position))
             continue;
 
         visited.push_back(position);

@@ -7,5 +7,6 @@
         "to": 85,
         "step": 200
     },
+    "interaction_radius": 1,
     "metrics_file_name": "percolation_metrics"
 }

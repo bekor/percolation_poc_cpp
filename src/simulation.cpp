@@ -53,12 +53,12 @@ void Simulation::set_activation_matrix(u16 probability,
                                        Matrix<bool>& matrix) {
     for(size_t row = 0; row < prob_matrix.rows(); ++row){
         for(size_t col = 0; col < prob_matrix.cols(); ++col){
-            matrix.at(row, col) = (prob_matrix(row, col) <= probability);
+            matrix.at(row, col) = (prob_matrix[row, col] <= probability);
         }
     }
 }
 
-bool Simulation::has_spanning_cluster(const Matrix<bool>& matrix){
+bool Simulation::has_spanning_cluster(const Matrix<bool>& matrix) {
     bool end_reached = false;
     for(int row = 0; row < matrix.rows(); ++row){
         end_reached = bfs(matrix, row, 0);

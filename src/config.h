@@ -27,9 +27,7 @@ private:
     u16 from;
     u16 to;
     u16 step_number;
-    int scale(int prob) const {
-        return static_cast<u16>((static_cast<double>(prob) / 100.0) * max);
-    };
+    int scale(int prob) const;
 };
 
 
@@ -37,6 +35,7 @@ class Configuration{
 public:
     Configuration(unsigned int sim_number, ProbabilityRange prob_range, 
                   u16 matrix_row, u16 matrix_col,
+                  u16 interaction_radius,
                   std::string_view dir_path,
                   std::string metrics_file_name);
     ~Configuration() = default;
@@ -45,21 +44,16 @@ public:
     const ProbabilityRange& get_probability_range() const { return prob_range; }
     u16 get_matrix_row() const { return matrix_row; }
     u16 get_matrix_col() const { return matrix_col; }
-    std::filesystem::path get_metrics_file() const { 
-        std::stringstream sstm;
-        sstm << "_" << std::to_string(matrix_row) 
-             << "x" << std::to_string(matrix_col) 
-             << "_" << std::to_string(sim_number) << METRICS_EXTENSION;
-        std::string file_spec = sstm.str();
-        return std::filesystem::path(dir_path)/(metrics_file_name+file_spec);
-    }
-
+    u16 get_interaction_radius() const { return interaction_radius; }
+    bool is_interactions() const { return true; }
+    std::filesystem::path get_metrics_file() const;
 
 private:
     unsigned int sim_number;
     ProbabilityRange prob_range;
     u16 matrix_row;
     u16 matrix_col;
+    u16 interaction_radius;
     std::string_view dir_path;
     std::string metrics_file_name;
 };

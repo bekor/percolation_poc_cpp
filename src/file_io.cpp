@@ -31,11 +31,13 @@ Configuration read_config(const std::filesystem::path& path, std::string_view di
     u16 from      = data["probability"]["from"].get<u16>();
     u16 to        = data["probability"]["to"].get<u16>();
     u16 step      = data["probability"]["step"].get<u16>();
+    u16 interaction_r = data["interaction_radius"].get<u16>();
     std::string mfn  = data["metrics_file_name"].get<std::string>();
     return Configuration{
         sim_num,
         ProbabilityRange{from, to, step},
         mx_row, mx_col,
+        interaction_r,
         dir_path, mfn
     };
 }
@@ -66,7 +68,8 @@ void write_paremeters(const Configuration& config) {
         {"prob_to"          , to_prob},
         {"steps"            , prob_step},
         {"matrix_row"       , config.get_matrix_row()},
-        {"matrix_col"       , config.get_matrix_col()}
+        {"matrix_col"       , config.get_matrix_col()},
+        {"interaction_radius", config.get_interaction_radius()},
     };
 
     std::ofstream file(config.get_metrics_file());

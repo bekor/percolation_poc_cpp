@@ -5,7 +5,7 @@ void print_bit_matrix(const Matrix<bool>& matrix){
     std::cout << "The matrix: " << std::endl;
     for(size_t row = 0; row < matrix.rows(); ++row){
         for(size_t col = 0; col < matrix.cols(); ++col){
-            std::cout << matrix(row, col);
+            std::cout << matrix[row, col];
         }
         std::cout << std::endl;
     }
