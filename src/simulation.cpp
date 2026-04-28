@@ -3,8 +3,8 @@
 #include <random>
 
 #include "search.h"
-#include "interaction.h"
 #include "printer.h"
+#include "state_dump.h"
 
 namespace {
     u16 uniform_random() {
@@ -26,21 +26,17 @@ void Simulation::run_simulation(){
     const u16 prob_step = config.get_probability_range().prob_step();
     const u16 num_steps = config.get_probability_range().get_step_number();
 
+    StateDump sd{config.get_state_dump_file(), matrix.rows(), matrix.cols()};
+
     metrics.simulation_num = sim_num;
     for(unsigned int i = 0; i < sim_num; ++i){
         populate_prob_matrix(probability_matrix);
-        print_matrix(probability_matrix);
+        // int previous_population_count = 0;
         bool has_spanning = false;
         for(u16 step = 0; step < num_steps; ++step){
             u16 prob = from + step * prob_step;
             set_activation_matrix(prob, probability_matrix, matrix);
-            print_bit_matrix(matrix);
-            // apply interaction (van der Waals or other)
-            if(config.is_interactions()){
-                auto updated_prob = interaction(probability_matrix, matrix, config.get_interaction_radius());
-                print_matrix(updated_prob);
-                probability_matrix = updated_prob;
-            }
+            // print_bit_matrix(matrix);
 
             auto population = matrix.count(true);
 
@@ -51,6 +47,14 @@ void Simulation::run_simulation(){
                 metrics.spanning_at_prob.at(step) += 1;
             }
             metrics.activation_per_run.at(step) += population;
+
+            if(step >= 103 && step <= 119){
+                auto msg = "step : " + std::to_string(i) + " prob: " + std::to_string(prob);
+                info_print(msg);
+                u16 max = std::numeric_limits<u16>::max();
+                float prob_percent = (static_cast<float>(prob)/ max) * 100;
+                sd.write(matrix, prob_percent, population);
+            }
         }
     }
 }

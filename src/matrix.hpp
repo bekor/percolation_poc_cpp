@@ -44,6 +44,7 @@ public:
     u16 count(const E& value) const {
         return static_cast<u16>(std::count(matrix_.begin(), matrix_.end(), value));
     }
+    const std::vector<E> data() const {return  matrix_;};
 
 
 };
@@ -90,4 +91,7 @@ public:
     u16 count(bool value) const {
         return static_cast<u16>(std::count(matrix_.begin(), matrix_.end(), value));
     }
+    const std::vector<bool> data() const {return  matrix_;};
+
+
 };

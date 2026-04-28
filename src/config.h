@@ -5,7 +5,8 @@
 #include <string_view>
 #include <sstream>
 
-constexpr std::string_view METRICS_EXTENSION = ".txt";
+constexpr std::string_view METRICS_EXTENSION = ".json";
+constexpr std::string_view STATE_DUMP_EXTENSION = ".h5";
 typedef uint16_t u16;
 
 class ProbabilityRange {
@@ -36,6 +37,7 @@ public:
     Configuration(unsigned int sim_number, ProbabilityRange prob_range, 
                   u16 matrix_row, u16 matrix_col,
                   u16 interaction_radius,
+                  std::string interaction_type,
                   std::string_view dir_path,
                   std::string metrics_file_name);
     ~Configuration() = default;
@@ -45,8 +47,9 @@ public:
     u16 get_matrix_row() const { return matrix_row; }
     u16 get_matrix_col() const { return matrix_col; }
     u16 get_interaction_radius() const { return interaction_radius; }
-    bool is_interactions() const { return true; }
+    bool is_interactions() const { return false; }
     std::filesystem::path get_metrics_file() const;
+    std::filesystem::path get_state_dump_file() const;
 
 private:
     unsigned int sim_number;
@@ -54,6 +57,7 @@ private:
     u16 matrix_row;
     u16 matrix_col;
     u16 interaction_radius;
+    std::string interaction_type;
     std::string_view dir_path;
     std::string metrics_file_name;
 };

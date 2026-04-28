@@ -28,3 +28,7 @@ void print_config(const Configuration& config){
                 << " output file: " << config.get_metrics_file()
                 << "\n";
 }
+
+void info_print(std::string_view info){
+        std::cout << "Info: " << info << std::endl;
+}

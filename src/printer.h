@@ -22,3 +22,5 @@ void print_bit_matrix(const Matrix<bool>& matrix);
 void print_metrics(std::string_view title, const std::array<double, 200>& metrics);
 
 void print_config(const Configuration& config);
+
+void info_print(std::string_view info);
