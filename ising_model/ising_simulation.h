@@ -15,8 +15,6 @@ private:
     MetricIsing metropolis(const std::vector<uint8_t>& state, uint32_t iteration, 
                             uint16_t original_activation, int energy, double temperature_BJ);
     int calculate_energy_diff(const std::vector<uint8_t>& matrix, size_t pos_act, size_t pos_inact);
-    int energy_around_neighbor_at_swap(const std::vector<uint8_t>& matrix, const std::vector<size_t>& neighbors, 
-                                size_t pos_origin, size_t pos_other);
     std::vector<size_t> get_neighbors(size_t row, size_t col) const;
 
 };

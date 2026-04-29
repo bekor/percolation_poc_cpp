@@ -36,7 +36,7 @@ void uncorrelated_simulation(States states){
 }
 
 void ising_simulation(States states){
-    std::string metrics_file = PATH+"ising_metrics_30x30_100000_08.h5";
+    std::string metrics_file = PATH+"ising_metrics_30x30_100000_03.h5";
     size_t simulation_number = 100000;
     std::cout << "lengths (m, perc, act): " << states.matrices.size() << ", "<< states.percents.size() << ", "<< states.activations.size()
         << " row,col: " << states.rows << ", " << states.cols << " count " << states.count << "\n";

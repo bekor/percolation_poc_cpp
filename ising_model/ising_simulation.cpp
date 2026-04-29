@@ -52,12 +52,11 @@ int IsingSimulation::energy_around_point(const std::vector<uint8_t>& state, size
 
     for(auto neighbor : neighbors){
         assert(neighbor < state.size());
-        if(current_value == state[neighbor])
-            local_energy++;
-        else
-            local_energy--;
+        int value = state[neighbor] == 0 ? -1 : 1;
+        local_energy += value;
     }
-    return local_energy;
+    int point_value = current_value == 0 ? -1 : 1;
+    return -1 * point_value * local_energy;
 }
 
 int IsingSimulation::calculate_energy(const std::vector<uint8_t>& state){
@@ -72,43 +71,24 @@ int IsingSimulation::calculate_energy(const std::vector<uint8_t>& state){
     return energy / 2; // reduced double count
 }
 
-int IsingSimulation::energy_around_neighbor_at_swap(const std::vector<uint8_t>& matrix, const std::vector<size_t>& neighbors, 
-                                size_t pos_origin, size_t pos_other){
-    uint8_t swapped_value = matrix[pos_origin] == 1 ? 0 : 1;
-    int local_energy = 0;
-
-    for(auto neighbor : neighbors){
-        int value = matrix[neighbor];
-        if (neighbor == pos_other){
-            value = value == 1 ? 0 : 1;
-        }
-        if(value == swapped_value)
-            local_energy++;
-        else
-            local_energy--;
-    }
-    return local_energy;
-}
-
-
 int IsingSimulation::calculate_energy_diff(const std::vector<uint8_t>& matrix, size_t pos_act, size_t pos_inact){
     size_t row_active   = pos_act / cols;
     size_t col_active   = pos_act % cols;
     size_t row_inactive = pos_inact / cols;
     size_t col_inactive = pos_inact % cols;
-    auto initial_value_active   = matrix[pos_act];
-    auto initial_value_inactive = matrix[pos_inact];
 
-    auto initial_energy_active   = energy_around_point(matrix, row_active, col_active, initial_value_active);
-    auto initial_energy_inactive = energy_around_point(matrix, row_inactive, col_inactive, initial_value_inactive);
+    int dE = -2 * energy_around_point(matrix, row_active,   col_active,   matrix[pos_act])
+             -2 * energy_around_point(matrix, row_inactive, col_inactive, matrix[pos_inact]);
 
-    auto neighbors_active   = get_neighbors(row_active, col_active);
-    auto neighbors_inactive = get_neighbors(row_inactive, col_inactive);
-
-    int active_final_energy = energy_around_neighbor_at_swap(matrix, neighbors_active, pos_act, pos_inact);
-    int inactive_final_energy   = energy_around_neighbor_at_swap(matrix, neighbors_inactive, pos_inact, pos_act);
-    
-    return (active_final_energy - initial_energy_active) + inactive_final_energy - initial_energy_inactive;
+    // adjacency correction
+    auto neighbors_active = get_neighbors(row_active, col_active);
+    auto are_neighbors = std::find(neighbors_active.begin(), neighbors_active.end(), pos_inact);
+    if (are_neighbors != neighbors_active.end()) {
+        int sa = matrix[pos_act]    == 0 ? -1 : 1;
+        int sb = matrix[pos_inact]  == 0 ? -1 : 1;
+        dE += 4 * sa * sb;
+    }
+    return dE;
 }
 
 MetricIsing IsingSimulation::metropolis(const std::vector<uint8_t>& state, uint32_t iteration, 
@@ -172,7 +152,7 @@ MetricIsing IsingSimulation::run_simulation(const std::vector<uint8_t>& state,
     int initial_energy = energy;
     std::cout << "energy: " << energy << std::endl;
     
-    float inv_temperature = 0.8;
+    float inv_temperature = 0.3;
     MetricIsing metric = metropolis(state, simulation_number, original_activation, energy, inv_temperature);
     metric.initial_activation = original_activation;
     metric.initial_energy = initial_energy;
