@@ -112,6 +112,7 @@ target_link_libraries(ising_model PRIVATE
 # ── Tests (Catch2 via brew) ──────────────────────────────────────
 find_package(Catch2 REQUIRED)
 
+
 file(GLOB_RECURSE TEST_FILES test/*.cpp)
 set(PERC_H 
     src/simulation.h
@@ -133,9 +134,15 @@ set(PERC_SRC
     src/state_dump.cpp
 )
 
-add_executable(tests ${TEST_FILES} ${PERC_H} ${PERC_SRC})
+set(ISING_TEST_SRC
+    ising_model/ising_simulation.cpp
+    ising_model/search.cpp
+)
+
+add_executable(tests ${TEST_FILES} ${PERC_H} ${PERC_SRC} ${ISING_TEST_SRC})
 target_include_directories(tests PRIVATE
     src
+    ising_model
     ${highfive_SOURCE_DIR}/include
 )
 target_link_libraries(tests PRIVATE
