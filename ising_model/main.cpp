@@ -35,17 +35,17 @@ void uncorrelated_simulation(States states){
     // }
 }
 
-void ising_simulation(States states){
-    std::string metrics_file = PATH+"ising_metrics_30x30_100000_03.h5";
+void ising_simulation(States states, float beta, bool save_evoluton){
+    std::string metrics_file = PATH+"ising_metrics_30x30_100000_total_" + std::to_string(beta) + ".h5";
     size_t simulation_number = 100000;
     std::cout << "lengths (m, perc, act): " << states.matrices.size() << ", "<< states.percents.size() << ", "<< states.activations.size()
-        << " row,col: " << states.rows << ", " << states.cols << " count " << states.count << "\n";
-    IsingMetricWriter writer(metrics_file, states.rows, states.cols, states.count, simulation_number);
+        << " row,col: " << states.rows << ", " << states.cols << " count " << states.count << " beta: " << beta << "\n";
+    IsingMetricWriter writer{metrics_file, states.rows, states.cols, states.count, simulation_number, save_evoluton};
     IsingSimulation isim{states.rows, states.cols};
     
     for(size_t i = 0; i < states.count; ++i) {
         std::cout << "index: " << i << " percent: " << states.percents[i] << std::endl;
-        auto current_metric = isim.run_simulation(states.matrices[i], states.activations[i], simulation_number);
+        auto current_metric = isim.run_simulation(states.matrices[i], states.activations[i], simulation_number, beta);
         current_metric.probability = states.percents[i];
         std::cout << "writing h5 at for " << i << " percent: " << states.percents[i] << std::endl;
         writer.write(current_metric);
@@ -79,7 +79,10 @@ int main() {
 
     std::cout << "subset size: " << count_subset_states << std::endl;
     // uncorrelated_simulation(states);
-    ising_simulation(subset);
+    std::vector<float> betas{0.1};
+    for(auto beta: betas){
+        ising_simulation(subset, beta, true);
+    }
     return 0;
 }
     

@@ -86,7 +86,7 @@ int IsingSimulation::calculate_energy_diff(const std::vector<uint8_t>& matrix, s
     if (are_neighbors != neighbors_active.end()) {
         int sa = matrix[pos_act]    == 0 ? -1 : 1;
         int sb = matrix[pos_inact]  == 0 ? -1 : 1;
-        dE += 4 * sa * sb;
+        dE += -4 * sa * sb;
     }
     return dE;
 }
@@ -116,14 +116,15 @@ MetricIsing IsingSimulation::metropolis(const std::vector<uint8_t>& state, uint3
 
         assert(pos_active < matrix.size());
         assert(pos_inactive < matrix.size());
-
         int energy_diff  = calculate_energy_diff(matrix, pos_active, pos_inactive);
-        bool is_accepted = energy_diff <= 0 ||
-              uniform_double_random(0.0, 1.0) < std::exp(-1 * inv_temperature * energy_diff);
+        float acceptance_prob = std::exp(-1 * inv_temperature * energy_diff);
+        bool is_accepted = energy_diff <= 0 || uniform_double_random(0.0, 1.0) < acceptance_prob;
 
         if(is_accepted){
             std::swap(matrix[pos_active], matrix[pos_inactive]);
             energy += energy_diff;
+            active_idxs[a_idx]   = pos_inactive;
+            inactive_idxs[i_idx] = pos_active;
         }
 
         auto is_spanning = has_spanning_cluster(matrix);
@@ -134,8 +135,6 @@ MetricIsing IsingSimulation::metropolis(const std::vector<uint8_t>& state, uint3
         metric.acceptance.push_back(is_accepted ? 1 : 0);
         metric.net_energy.push_back(energy);
         metric.spanning.push_back(is_spanning);
-
-        // std::cout << "metric size: " << metric.spanning.size() << std::endl;
     }
     std::cout << "iteration count: " << iteration << "\n"
               << "spanning count: " << spanning_count << std::endl;
@@ -145,17 +144,18 @@ MetricIsing IsingSimulation::metropolis(const std::vector<uint8_t>& state, uint3
 
 MetricIsing IsingSimulation::run_simulation(const std::vector<uint8_t>& state,
                                             uint16_t original_activation, 
-                                            uint32_t simulation_number) 
+                                            uint32_t simulation_number,
+                                            float beta) 
 {
     
     int energy = calculate_energy(state);
     int initial_energy = energy;
-    std::cout << "energy: " << energy << std::endl;
+    std::cout << "energy: " << energy << ", beta: " << beta << std::endl;
     
-    float inv_temperature = 0.3;
-    MetricIsing metric = metropolis(state, simulation_number, original_activation, energy, inv_temperature);
+    MetricIsing metric = metropolis(state, simulation_number, original_activation, energy, beta);
     metric.initial_activation = original_activation;
     metric.initial_energy = initial_energy;
+    metric.beta = beta;
 
     std::cout << "metropolis ended for energy " << initial_energy << std::endl;
     return metric;

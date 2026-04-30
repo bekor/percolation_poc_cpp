@@ -30,7 +30,7 @@ private:
 
 class IsingMetricWriter {
 public:
-    IsingMetricWriter(const std::string& path, size_t rows, size_t cols, size_t n_metrics, size_t n_steps);
+    IsingMetricWriter(const std::string& path, size_t rows, size_t cols, size_t n_metrics, size_t n_steps, bool has_evolution);
 
     void write(const MetricIsing& metric);
 
@@ -43,10 +43,12 @@ private:
     HighFive::DataSet ds_spanning_;    // (n_metrics, n_steps)
     HighFive::DataSet ds_acceptance_;    // (n_metrics, n_steps)
     HighFive::DataSet ds_net_energy_;    // (n_metrics, n_steps)
+    HighFive::DataSet ds_beta_;
     size_t            rows_;
     size_t            cols_;
     size_t            steps_;          // evolution_state length — fixed per write
     size_t            count_;
+    bool              has_evolution_;
 
     template <typename T>
     void append_scalar(HighFive::DataSet& dset, T val);

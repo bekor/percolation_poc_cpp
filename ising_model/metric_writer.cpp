@@ -52,9 +52,9 @@ void MetricWriter::write(const Metric& metric)
 
 
 IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_t cols, 
-                           size_t n_metrics, size_t n_steps)
+                           size_t n_metrics, size_t n_steps, bool has_evolution)
     : file_(path, HighFive::File::Truncate), rows_(rows), cols_(cols),
-      steps_(n_steps), count_(0)
+      steps_(n_steps), count_(0), has_evolution_(has_evolution)
 {
     size_t flat = rows * cols;
 
@@ -71,6 +71,9 @@ IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_
     );
     ds_initial_energy_ = file_.createDataSet<uint16_t>(
         "initial_energy", HighFive::DataSpace({n_metrics}), props1
+    );
+    ds_beta_ = file_.createDataSet<float>(
+        "beta", HighFive::DataSpace({n_metrics}), props1
     );
     
     HighFive::DataSetCreateProps props2;
@@ -89,12 +92,14 @@ IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_
         "net_energy", HighFive::DataSpace({n_metrics, n_steps}), props2
     );
 
-    HighFive::DataSetCreateProps props3;
-    props3.add(HighFive::Chunking({1, 1, flat}));
-    props3.add(HighFive::Deflate(4));
-    ds_evolution_ = file_.createDataSet<uint8_t>(
-        "evolution", HighFive::DataSpace({n_metrics, n_steps, flat}), props3
-    );
+    if(has_evolution){
+        HighFive::DataSetCreateProps props3;
+        props3.add(HighFive::Chunking({1, 1, flat}));
+        props3.add(HighFive::Deflate(4));
+        ds_evolution_ = file_.createDataSet<uint8_t>(
+            "evolution", HighFive::DataSpace({n_metrics, n_steps, flat}), props3
+        );
+    }
 }
 
 void IsingMetricWriter::write(const MetricIsing& metric)
@@ -104,7 +109,8 @@ void IsingMetricWriter::write(const MetricIsing& metric)
     ds_probability_.select({count_}, {1}).write_raw(&metric.probability);
     ds_initial_activation_.select({count_},  {1}).write_raw(&metric.initial_activation);
     ds_initial_energy_.select({count_},  {1}).write_raw(&metric.initial_energy);
-
+    ds_beta_.select({count_}, {1}).write_raw(&metric.beta);
+    
     ds_spanning_.select({count_, 0}, {1, steps_})
                 .write_raw(metric.spanning.data());
 
@@ -114,10 +120,11 @@ void IsingMetricWriter::write(const MetricIsing& metric)
     ds_net_energy_.select({count_, 0}, {1, steps_})
             .write_raw(metric.net_energy.data());
 
-
-    for (size_t s = 0; s < steps_; ++s)
-        ds_evolution_.select({count_, s, 0}, {1, 1, flat})
-                     .write_raw(metric.evolution_state[s].data());
+    if(has_evolution_){
+        for (size_t s = 0; s < steps_; ++s)
+            ds_evolution_.select({count_, s, 0}, {1, 1, flat})
+                        .write_raw(metric.evolution_state[s].data());
+    }
 
     ++count_;
 }
