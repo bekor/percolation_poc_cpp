@@ -3,6 +3,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <set>
 
 #include "ising_simulation.h"
 
@@ -346,7 +347,7 @@ TEST_CASE("metropolis: spin count conserved (Kawasaki)", "[metropolis]") {
     uint16_t n_active = static_cast<uint16_t>(
         std::count(state.begin(), state.end(), 1));
 
-    MetricIsing result = sim.run_simulation(state, n_active, 200, 1.0f);
+    MetricIsing result = sim.run_simulation(state, n_active, 200, 1.0f, false);
 
     for (auto& s : result.evolution_state) {
         int count = std::count(s.begin(), s.end(), 1);
@@ -360,7 +361,7 @@ TEST_CASE("metropolis: metric vectors have correct length", "[metropolis]") {
     uint32_t iterations = 50;
     uint16_t n_active = 8;
 
-    MetricIsing result = sim.run_simulation(state, n_active, iterations, 1.0f);
+    MetricIsing result = sim.run_simulation(state, n_active, iterations, 1.0f, false);
 
     REQUIRE(result.evolution_state.size() == iterations);
     REQUIRE(result.acceptance.size()      == iterations);
@@ -374,7 +375,7 @@ TEST_CASE("metropolis: initial fields set correctly", "[metropolis]") {
     uint16_t n_active = 8;
     int expected_energy = sim.calculate_energy(state);
 
-    MetricIsing result = sim.run_simulation(state, n_active, 10, 1.0f);
+    MetricIsing result = sim.run_simulation(state, n_active, 10, 1.0f, false);
 
     REQUIRE(result.initial_activation == n_active);
     REQUIRE(result.initial_energy     == expected_energy);
@@ -384,7 +385,7 @@ TEST_CASE("metropolis: energy tracking consistent with diffs", "[metropolis]") {
     // verify energy never jumps more than max possible |ΔE| per swap
     IsingSimulation sim(4, 4);
     auto state = make_half_half(4, 4);
-    MetricIsing result = sim.run_simulation(state, 8, 100, 1.0f);
+    MetricIsing result = sim.run_simulation(state, 8, 100, 1.0f, false);
 
     for (size_t i = 1; i < result.net_energy.size(); ++i) {
         int delta = std::abs(result.net_energy[i] - result.net_energy[i-1]);
@@ -395,7 +396,7 @@ TEST_CASE("metropolis: energy tracking consistent with diffs", "[metropolis]") {
 TEST_CASE("metropolis: acceptance values are 0 or 1", "[metropolis]") {
     IsingSimulation sim(4, 4);
     auto state = make_half_half(4, 4);
-    MetricIsing result = sim.run_simulation(state, 8, 100, 1.0f);
+    MetricIsing result = sim.run_simulation(state, 8, 100, 1.0f, false);
 
     for (auto a : result.acceptance) {
         REQUIRE((a == 0 || a == 1));
@@ -405,7 +406,7 @@ TEST_CASE("metropolis: acceptance values are 0 or 1", "[metropolis]") {
 TEST_CASE("metropolis: spanning values are bool-like", "[metropolis]") {
     IsingSimulation sim(4, 4);
     auto state = make_half_half(4, 4);
-    MetricIsing result = sim.run_simulation(state, 8, 50, 1.0f);
+    MetricIsing result = sim.run_simulation(state, 8, 50, 1.0f, false);
 
     for (auto s : result.spanning) {
         REQUIRE((s == true || s == false));
@@ -417,7 +418,7 @@ TEST_CASE("metropolis: high beta → energy non-increasing after warmup", "[metr
     // last 50 steps of 500 should not be much higher than early minimum
     IsingSimulation sim(6, 6);
     auto state = make_half_half(6, 6);
-    MetricIsing result = sim.run_simulation(state, 18, 500, 200.0f);
+    MetricIsing result = sim.run_simulation(state, 18, 500, 200.0f, false);
 
     auto& e = result.net_energy;
     int max_late  = *std::max_element(e.end() - 50, e.end());
@@ -432,8 +433,8 @@ TEST_CASE("metropolis: low beta → higher energy than high beta at equilibrium"
     IsingSimulation sim(6, 6);
     auto state = make_half_half(6, 6);
 
-    MetricIsing high_T = sim.run_simulation(state, 18, 500, 0.1f);
-    MetricIsing low_T  = sim.run_simulation(state, 18, 500, 200.0f);
+    MetricIsing high_T = sim.run_simulation(state, 18, 500, 0.1f, false);
+    MetricIsing low_T  = sim.run_simulation(state, 18, 500, 200.0f, false);
 
     // average last 50 steps
     auto avg_tail = [](const std::vector<int>& v) {
@@ -449,8 +450,166 @@ TEST_CASE("metropolis: beta=0 → all moves accepted (infinite T)", "[metropolis
     // beta=0 → exp(-0*dE)=1 → every uphill move accepted
     IsingSimulation sim(4, 4);
     auto state = make_half_half(4, 4);
-    MetricIsing result = sim.run_simulation(state, 8, 100, 0.0f);
+    MetricIsing result = sim.run_simulation(state, 8, 100, 0.0f, false);
 
     int accepted = std::accumulate(result.acceptance.begin(), result.acceptance.end(), 0);
     REQUIRE(accepted == 100); // all accepted
+}
+
+#include <catch2/catch_test_macros.hpp>
+
+// ─────────────────────────────────────────────
+// helpers
+// ─────────────────────────────────────────────
+
+static double brute_correlation_sum(const std::vector<uint8_t>& matrix,
+                                    int rows, int cols)
+{
+    double sum = 0.0;
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            int si  = matrix[r * cols + c]              == 0 ? -1 : 1;
+            int sj_r = matrix[r * cols + (c+1) % cols]  == 0 ? -1 : 1;
+            int sj_d = matrix[((r+1) % rows) * cols + c] == 0 ? -1 : 1;
+            sum += si * sj_r;
+            sum += si * sj_d;
+        }
+    }
+    return sum;
+}
+
+// ─────────────────────────────────────────────
+// calculate_correlation_sum
+// ─────────────────────────────────────────────
+
+TEST_CASE("calculate_correlation_sum: all-ones 2x2 → 8", "[corr_sum]") {
+    // 2×2 PBC: 2 bonds/site × 4 sites = 8 pairs, all (+1)(+1) = 1 → sum = 8
+    IsingSimulation sim(2, 2);
+    std::vector<uint8_t> state = {1, 1, 1, 1};
+    REQUIRE(sim.calculate_correlation_sum(state) == Catch::Approx(8.0));
+}
+
+TEST_CASE("calculate_correlation_sum: all-zeros 2x2 → same as all-ones", "[corr_sum]") {
+    // 0→-1, so (-1)(-1) = +1, identical sum
+    IsingSimulation sim(2, 2);
+    std::vector<uint8_t> ones  = {1, 1, 1, 1};
+    std::vector<uint8_t> zeros = {0, 0, 0, 0};
+    REQUIRE(sim.calculate_correlation_sum(zeros) == Catch::Approx(sim.calculate_correlation_sum(ones)));
+}
+
+TEST_CASE("calculate_correlation_sum: checkerboard 4x4 → -32", "[corr_sum]") {
+    // every neighbor pair anti-aligned → si*sj = -1
+    // 2 bonds/site × 16 sites = 32 pairs → sum = -32
+    IsingSimulation sim(4, 4);
+    auto state = make_checkerboard(4, 4);
+    REQUIRE(sim.calculate_correlation_sum(state) == Catch::Approx(-32.0));
+}
+
+TEST_CASE("calculate_correlation_sum: matches brute force on mixed 3x3", "[corr_sum]") {
+    IsingSimulation sim(3, 3);
+    std::vector<uint8_t> state = {
+        1, 0, 1,
+        0, 1, 0,
+        1, 1, 0
+    };
+    REQUIRE(sim.calculate_correlation_sum(state) == Catch::Approx(brute_correlation_sum(state, 3, 3)));
+}
+
+TEST_CASE("calculate_correlation_sum: matches brute force on multiple 4x4 configs", "[corr_sum]") {
+    IsingSimulation sim(4, 4);
+    std::vector<std::vector<uint8_t>> configs = {
+        make_checkerboard(4, 4),
+        make_half_half(4, 4),
+        {1,0,1,0, 0,1,0,1, 1,1,0,0, 0,0,1,1},
+        {1,1,1,1, 1,1,0,0, 0,0,0,0, 0,0,1,1},
+    };
+    for (auto& state : configs) {
+        INFO("config mismatch");
+        REQUIRE(sim.calculate_correlation_sum(state) == Catch::Approx(brute_correlation_sum(state, 4, 4)));
+    }
+}
+
+TEST_CASE("calculate_correlation_sum: single flip lowers sum in aligned grid", "[corr_sum]") {
+    // all-ones 3x3: flip center → 4 bonds flip +1→-1, delta = -8
+    IsingSimulation sim(3, 3);
+    auto state = make_all_ones(3, 3);
+    double before = sim.calculate_correlation_sum(state);
+    state[4] = 0;
+    double after = sim.calculate_correlation_sum(state);
+    REQUIRE(after < before);
+    REQUIRE(after == Catch::Approx(before - 8.0));
+    REQUIRE(after == Catch::Approx(brute_correlation_sum(state, 3, 3)));
+}
+
+TEST_CASE("calculate_correlation_sum: magnitude bounded by 2*N", "[corr_sum]") {
+    IsingSimulation sim(5, 5);
+    auto state = make_all_ones(5, 5);
+    REQUIRE(std::abs(sim.calculate_correlation_sum(state)) <= Catch::Approx(2.0 * 5 * 5));
+}
+
+TEST_CASE("pre_calculate_betas: total size equals iteration", "[betas]") {
+    IsingSimulation sim(4, 4);
+    REQUIRE(sim.pre_calculate_betas(100, 0.1).size() == 100);
+    REQUIRE(sim.pre_calculate_betas(7,   0.1).size() == 7);   // non-divisible
+    REQUIRE(sim.pre_calculate_betas(0,   0.1).size() == 0);
+}
+
+TEST_CASE("pre_calculate_betas: exactly 4 distinct beta values", "[betas]") {
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(100, 0.1);
+    std::set<float> unique(betas.begin(), betas.end());
+    REQUIRE(unique.size() == 4);
+}
+
+TEST_CASE("pre_calculate_betas: first value is beta_initial", "[betas]") {
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(100, 0.1);
+    REQUIRE(betas.front() == Catch::Approx(0.1f));
+}
+
+TEST_CASE("pre_calculate_betas: last value is CRITICAL_BETA", "[betas]") {
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(100, 0.1);
+    REQUIRE(betas.back() == Catch::Approx(1.0f / 2.27f));
+}
+
+TEST_CASE("pre_calculate_betas: segments non-divisible iteration → remainder in last", "[betas]") {
+    // iteration=9, stride=4 → counts: 2,2,2,3
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(9, 0.1);
+    REQUIRE(betas.size() == 9);
+
+    float b0 = betas[0];
+    REQUIRE(betas[0] == Catch::Approx(b0));
+    REQUIRE(betas[8] == Catch::Approx(1.0f / 2.27f));
+
+    // last segment has 3 elements (2 + remainder 1)
+    REQUIRE(betas[6] == Catch::Approx(betas[7]));
+    REQUIRE(betas[7] == Catch::Approx(betas[8]));
+}
+
+TEST_CASE("pre_calculate_betas: segments divisible → equal chunk sizes", "[betas]") {
+    // iteration=8, stride=4 → each segment = 2
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(8, 0.1);
+    REQUIRE(betas[0] == Catch::Approx(betas[1]));
+    REQUIRE(betas[2] == Catch::Approx(betas[3]));
+    REQUIRE(betas[4] == Catch::Approx(betas[5]));
+    REQUIRE(betas[6] == Catch::Approx(betas[7]));
+    // segments differ
+    REQUIRE(betas[1] != Catch::Approx(betas[2]));
+}
+
+TEST_CASE("pre_calculate_betas: monotonically increasing", "[betas]") {
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(100, 0.1);
+    for (size_t i = 1; i < betas.size(); ++i)
+        REQUIRE(betas[i] >= betas[i-1]);
+}
+
+TEST_CASE("pre_calculate_betas: beta_initial above CRITICAL_BETA → monotonically decreasing", "[betas]") {
+    IsingSimulation sim(4, 4);
+    auto betas = sim.pre_calculate_betas(100, 0.8);  // 0.8 > 0.4405
+    for (size_t i = 1; i < betas.size(); ++i)
+        REQUIRE(betas[i] <= betas[i-1]);
 }

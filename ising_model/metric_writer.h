@@ -44,6 +44,7 @@ private:
     HighFive::DataSet ds_acceptance_;    // (n_metrics, n_steps)
     HighFive::DataSet ds_net_energy_;    // (n_metrics, n_steps)
     HighFive::DataSet ds_beta_;
+    HighFive::DataSet ds_correlation_; // (n_metrics, n_steps)
     size_t            rows_;
     size_t            cols_;
     size_t            steps_;          // evolution_state length — fixed per write

@@ -107,7 +107,9 @@ target_link_libraries(ising_model PRIVATE
     HighFive::HighFive
     nlohmann_json::nlohmann_json
 )
-
+target_compile_definitions(ising_model PRIVATE
+    RESOURCES_DIR="${CMAKE_BINARY_DIR}/resources/"
+)
 
 # ── Tests (Catch2 via brew) ──────────────────────────────────────
 find_package(Catch2 REQUIRED)

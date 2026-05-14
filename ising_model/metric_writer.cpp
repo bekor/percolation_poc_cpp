@@ -11,7 +11,6 @@ MetricWriter::MetricWriter(const std::string& path, size_t rows, size_t cols,
     HighFive::DataSetCreateProps props1;
     props1.add(HighFive::Chunking({64}));
 
-    // fixed size — no UNLIMITED needed
     ds_probability_ = file_.createDataSet<float>(
         "probability", HighFive::DataSpace({n_metrics}), props1
     );
@@ -62,7 +61,6 @@ IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_
     size_t chunk1 =std::min(n_metrics, size_t{64});
     props1.add(HighFive::Chunking({chunk1}));
 
-    // fixed size — no UNLIMITED needed
     ds_probability_ = file_.createDataSet<float>(
         "probability", HighFive::DataSpace({n_metrics}), props1
     );
@@ -72,9 +70,7 @@ IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_
     ds_initial_energy_ = file_.createDataSet<uint16_t>(
         "initial_energy", HighFive::DataSpace({n_metrics}), props1
     );
-    ds_beta_ = file_.createDataSet<float>(
-        "beta", HighFive::DataSpace({n_metrics}), props1
-    );
+
     
     HighFive::DataSetCreateProps props2;
     props2.add(HighFive::Chunking({1, n_steps}));
@@ -92,12 +88,23 @@ IsingMetricWriter::IsingMetricWriter(const std::string& path, size_t rows, size_
         "net_energy", HighFive::DataSpace({n_metrics, n_steps}), props2
     );
 
+    props2.add(HighFive::Chunking({1, n_steps}));
+    ds_beta_ = file_.createDataSet<float>(
+        "beta", HighFive::DataSpace({n_metrics, n_steps}), props2
+    );
+    
+    ds_correlation_ = file_.createDataSet<float>(
+        "correlation", HighFive::DataSpace({n_metrics, n_steps}), props2
+    );
+
     if(has_evolution){
+        size_t n_evo_steps = (n_steps + 999) / 1000;
+        file_.createAttribute<size_t>("evolution_stride", HighFive::DataSpace::From(size_t{})).write(size_t{1000});
         HighFive::DataSetCreateProps props3;
         props3.add(HighFive::Chunking({1, 1, flat}));
         props3.add(HighFive::Deflate(4));
         ds_evolution_ = file_.createDataSet<uint8_t>(
-            "evolution", HighFive::DataSpace({n_metrics, n_steps, flat}), props3
+            "evolution", HighFive::DataSpace({n_metrics, n_evo_steps, flat}), props3
         );
     }
 }
@@ -109,7 +116,6 @@ void IsingMetricWriter::write(const MetricIsing& metric)
     ds_probability_.select({count_}, {1}).write_raw(&metric.probability);
     ds_initial_activation_.select({count_},  {1}).write_raw(&metric.initial_activation);
     ds_initial_energy_.select({count_},  {1}).write_raw(&metric.initial_energy);
-    ds_beta_.select({count_}, {1}).write_raw(&metric.beta);
     
     ds_spanning_.select({count_, 0}, {1, steps_})
                 .write_raw(metric.spanning.data());
@@ -119,9 +125,16 @@ void IsingMetricWriter::write(const MetricIsing& metric)
 
     ds_net_energy_.select({count_, 0}, {1, steps_})
             .write_raw(metric.net_energy.data());
+    
+    ds_beta_.select({count_, 0}, {1, steps_})
+            .write_raw(metric.beta.data());
+
+    ds_correlation_.select({count_, 0}, {1, steps_})
+            .write_raw(metric.correlation.data());
 
     if(has_evolution_){
-        for (size_t s = 0; s < steps_; ++s)
+        size_t n_evo = metric.evolution_state.size();
+        for (size_t s = 0; s < n_evo; ++s)
             ds_evolution_.select({count_, s, 0}, {1, 1, flat})
                         .write_raw(metric.evolution_state[s].data());
     }

@@ -13,5 +13,6 @@ struct MetricIsing : public Metric {
     int initial_energy;
     std::vector<uint8_t> acceptance;
     std::vector<int> net_energy;
-    float beta;
+    std::vector<float> beta;
+    std::vector<float> correlation;
 };
