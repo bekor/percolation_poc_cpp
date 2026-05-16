@@ -9,8 +9,11 @@
 
 bool Simulation::has_spanning_cluster(std::vector<uint8_t> state, size_t rows, size_t cols) const {
     bool end_reached = false;
+    std::vector<uint32_t> visited(rows * cols, 0);
+    uint32_t visit_id = 1;
     for(size_t row = 0; row < rows; ++row){
-        end_reached = bfs(state, rows, cols, row, 0);
+        end_reached = bfs(state, rows, cols, row, 0, visited, visit_id);
+        visit_id++;
         if(end_reached)
             return end_reached;
     }

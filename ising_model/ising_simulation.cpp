@@ -9,30 +9,58 @@
 constexpr float CRITICAL_TEMP{2.27};
 constexpr float CRITICAL_BETA{1.0f / CRITICAL_TEMP}; // ≈ 0.4405
 
+IsingSimulation::IsingSimulation(size_t rows, size_t cols) : rows(rows), cols(cols){
+    precaculate_neighbors();
+    size_t len = rows * cols;
+    visited.assign(len, 0);
+    visit_id = 1;
+}
 
-IsingSimulation::IsingSimulation(size_t rows, size_t cols) : rows(rows), cols(cols){}
+void IsingSimulation::precaculate_neighbors(){
+    neighbor_table.resize(rows * cols);
 
-bool IsingSimulation::has_spanning_cluster(const std::vector<uint8_t>& state) const {
+    for(size_t row = 0; row < rows; ++row)
+    {
+        for(size_t col = 0; col < cols; ++col)
+        {
+            size_t up    = ((row + rows - 1) % rows) * cols + col;
+            size_t down  = ((row + 1) % rows) * cols + col;
+            size_t right = row * cols + ((col + 1) % cols);
+            size_t left  = row * cols + ((col + cols - 1) % cols);
+            
+            size_t idx   = row * cols + col;
+            neighbor_table[idx] = {up, down, right, left};
+        }
+    }
+}
+
+bool IsingSimulation::has_spanning_cluster(const std::vector<uint8_t>& state) {
     bool end_reached = false;
     for(size_t row = 0; row < rows; ++row){
-        end_reached = bfs(state, rows, cols, row, 0);
+        end_reached = bfs(state, rows, cols, row, 0, visited, visit_id);
+        visit_id++;
+        if(visit_id == std::numeric_limits<uint32_t>::max())
+        {
+            std::fill(visited.begin(), visited.end(), 0);
+            visit_id = 1;
+        }
         if(end_reached)
             return end_reached;
     }
     return end_reached;
 }
 
-std::vector<size_t> IsingSimulation::get_neighbors(size_t row, size_t col) const {
-    static const std::vector<int> direction_row{-1, 1, 0, 0};
-    static const std::vector<int> direction_col{0, 0, 1, -1};
+std::array<size_t, 4> IsingSimulation::get_neighbors(size_t row, size_t col) const {
+    static const int direction_row[4] = {-1, 1, 0,  0};
+    static const int direction_col[4] = { 0, 0, 1, -1};
     int rows_ = static_cast<int>(rows);
     int cols_ = static_cast<int>(cols);
-    std::vector<size_t> neighbors;
-    for(size_t dir = 0; dir < direction_row.size(); ++dir)
+    std::array<size_t, 4> neighbors;
+    for(size_t dir = 0; dir < 4; ++dir)
     {
         int n_row = (static_cast<int>(row) + direction_row[dir] + rows_) % rows_;
         int n_col = (static_cast<int>(col) + direction_col[dir] + cols_) % cols_;
-        neighbors.push_back(n_row * cols + n_col);
+        neighbors[dir] = n_row * cols + n_col;
     }
     return neighbors;
 }
@@ -40,7 +68,8 @@ std::vector<size_t> IsingSimulation::get_neighbors(size_t row, size_t col) const
 int IsingSimulation::energy_around_point(const std::vector<uint8_t>& state, size_t row, size_t col, 
                         uint8_t current_value){
     int local_energy = 0;
-    auto neighbors = get_neighbors(row, col);
+    size_t position = row * cols + col;
+    auto neighbors = neighbor_table[position];
 
     for(auto neighbor : neighbors){
         assert(neighbor < state.size());
@@ -73,7 +102,8 @@ int IsingSimulation::calculate_energy_diff(const std::vector<uint8_t>& matrix, s
              -2 * energy_around_point(matrix, row_inactive, col_inactive, matrix[pos_inact]);
 
     // adjacency correction
-    auto neighbors_active = get_neighbors(row_active, col_active);
+    size_t position = row_active * cols + col_active;
+    auto neighbors_active = neighbor_table[position];
     auto are_neighbors = std::find(neighbors_active.begin(), neighbors_active.end(), pos_inact);
     if (are_neighbors != neighbors_active.end()) {
         int sa = matrix[pos_act]    == 0 ? -1 : 1;
@@ -110,7 +140,9 @@ double IsingSimulation::neighbor_correlation_diff(
     // difference is symmetric if they are neighbors -> contribution is 0 so we skipp
     //contribution will change in 4 direction not 2
     double diff = 0.0;
-    for (size_t nb : get_neighbors(row, col)) {
+    size_t position = row * cols + col;
+    auto  neighbors = neighbor_table[position];
+    for (size_t nb : neighbors) {
         if (nb == ignore_pos) continue;
         int spin_nb = matrix[nb] == 0 ? -1 : 1;
         diff += (double)(diff_spin) * spin_nb;
@@ -171,11 +203,10 @@ double IsingSimulation::calculate_avg_spin(const std::vector<uint8_t>& matrix) c
 }
 
 MetricIsing IsingSimulation::metropolis(const std::vector<uint8_t>& state, uint32_t iteration, 
-                                        uint16_t original_activation, int energy, double beta,
+                                        int energy, double beta,
                                         bool is_moving_betas){
     MetricIsing metric;
     metric.evolution_state.reserve(iteration / 1000 + 1);
-    metric.initial_activation = original_activation;
     if(is_moving_betas)
         metric.beta = pre_calculate_betas(iteration, beta);
     else{
@@ -247,13 +278,12 @@ MetricIsing IsingSimulation::run_simulation(const std::vector<uint8_t>& state,
 {
     
     int energy = calculate_energy(state);
-    int initial_energy = energy;
     std::cout << "energy: " << energy << ", beta: " << beta << std::endl;
     
-    MetricIsing metric = metropolis(state, simulation_number, original_activation, energy, beta, is_moving_betas);
+    MetricIsing metric = metropolis(state, simulation_number, energy, beta, is_moving_betas);
     metric.initial_activation = original_activation;
-    metric.initial_energy = initial_energy;
+    metric.initial_energy = energy;
 
-    std::cout << "metropolis ended for energy " << initial_energy << std::endl;
+    std::cout << "metropolis ended for energy " << energy << std::endl;
     return metric;
 }

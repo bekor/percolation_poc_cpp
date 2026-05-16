@@ -42,32 +42,54 @@ std::vector<std::tuple<u16, u16>> find_neighbors(const std::vector<uint8_t>& mat
     return neighbors;
 }
 
-bool bfs(const std::vector<uint8_t>& matrix, u16 rows, u16 cols, u16 start_row, u16 start_col) {
-    size_t position = cols * start_row + start_col;
-    assert((position < matrix.size()) && "position calculation failed");
-    if(matrix.at(position) == 0)
+bool bfs(const std::vector<uint8_t>& matrix, u16 rows, u16 cols, u16 start_row, u16 start_col, 
+         std::vector<uint32_t> visited, uint32_t visit_id)
+{
+    size_t start_pos = cols * start_row + start_col;
+    assert((start_pos < matrix.size()) && "position calculation failed");
+
+    if(matrix[start_pos] == 0)
         return false;
-    bool end_reached = false;
-    std::queue<std::pair<u16, u16>> coord_queue;
-    coord_queue.push({start_row, start_col});
 
-    std::vector<bool> visited(rows * cols, false);
-    visited[position] = true;
+    static constexpr int dr[4] = {-1, 1, 0, 0};
+    static constexpr int dc[4] = {0, 0, 1, -1};
 
-    while(!coord_queue.empty()){
-        auto curr_coord = coord_queue.front();
-        u16 current_row = std::get<0>(curr_coord);
-        u16 current_col = std::get<1>(curr_coord);
-        coord_queue.pop();
+    std::queue<std::pair<u16,u16>> coords_queue;
+    coords_queue.push({start_row, start_col});
 
-        if(is_end(matrix, current_row, current_col, cols)){
-            end_reached = true;
-            break;
-        }
-        auto neighbors = find_neighbors(matrix, rows, cols, current_row, current_col, visited);
-        for(auto [nxt_row, nxt_col] : neighbors){
-            coord_queue.push({nxt_row, nxt_col});
+    visited[start_pos] = visit_id;
+
+    while(!coords_queue.empty())
+    {
+        auto [row, col] = coords_queue.front();
+        coords_queue.pop();
+        if(is_end(matrix, row, col, cols))
+            return true;
+
+        for(int dir = 0; dir < 4; ++dir)
+        {
+            int next_row = row + dr[dir];
+            int next_col = col + dc[dir];
+
+            if(next_row < 0 || next_row >= rows)
+                continue;
+
+            if(next_col < 0 || next_col >= cols)
+                continue;
+
+            size_t position = next_row * cols + next_col;
+
+            if(!matrix[position] || visited[position] == visit_id)
+                continue;
+
+            visited[position] = visit_id;
+
+            coords_queue.push({
+                static_cast<u16>(next_row),
+                static_cast<u16>(next_col)
+            });
         }
     }
-    return end_reached;
+
+    return false;
 }

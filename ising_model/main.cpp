@@ -9,20 +9,29 @@
 #include "metric_writer.h"
 
 [[nodiscard]]
-States make_subset(const States& states, float low, float high, bool is_single) {
+States make_subset(const States& states, float low, float high, bool is_single, bool one_scale_probability) {
     States out;
     out.rows = states.rows;
     out.cols = states.cols;
- 
+    std::vector<float> occupation_probabilites{};
     for (size_t i = 0; i < states.count; ++i) {
         float p = states.percents[i];
+        if(one_scale_probability){
+            auto itr_in = std::find(occupation_probabilites.begin(), occupation_probabilites.end(), p);
+            if(itr_in != occupation_probabilites.end()){
+                break;
+            }
+        }
+        occupation_probabilites.push_back(p);
+
         if (p > low && p < high) {
             out.matrices.push_back(states.matrices[i]);
             out.percents.push_back(p);
             out.activations.push_back(states.activations[i]);
-            if(is_single)
+            if(is_single /*out.percents.size() == 2*/)
                 break;
         }
+
     }
     out.count = out.matrices.size();
     return out;
@@ -70,9 +79,9 @@ void ising_simulation(const States& states, float beta, const IsingConfig& cfg){
 }
 
 int main() {
-    PercolationConfig   pcfg{(std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5"), 59.0f, 59.5f};
+    PercolationConfig   pcfg{(std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5"), 1.0f, 95.5f};
     UncorrelatedConfig  ucfg{(std::string(RESOURCES_DIR) + "/metrics_30x30_100_p.h5"), 1'000};
-    IsingConfig         icfg{{ 0.1f }, 1'000'000, false, true};
+    IsingConfig         icfg{{ 0.1f, 0.15f, 0.2f, 0.25f }, 1'000'000, false, false};
     // std::string filename = std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5";
     // std::string filename = RESOURCES_DIR/"percolation_metrics_60x60_50.h5";
 
@@ -81,7 +90,7 @@ int main() {
             << " rows: "  << states.rows
             << " cols: "  << states.cols << "\n";
 
-    auto subset = make_subset(states, pcfg.percent_low, pcfg.percent_high, false);
+    auto subset = make_subset(states, pcfg.percent_low, pcfg.percent_high, false, true);
 
     std::cout << "subset size: " << subset.count << std::endl;
     // uncorrelated_simulation(states, ucfg);
@@ -90,4 +99,3 @@ int main() {
     }
     return 0;
 }
-    

@@ -54,7 +54,7 @@ TEST_CASE("get_neighbors: interior cell correct indices", "[neighbors]") {
     // center (2,2) → up(1,2)=7, down(3,2)=17, right(2,3)=13, left(2,1)=11
     auto neighbors = sim.get_neighbors(2, 2);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {7, 11, 13, 17};
+    std::array<size_t, 4> expected = {7, 11, 13, 17};
     REQUIRE(neighbors == expected);
 }
 
@@ -63,7 +63,7 @@ TEST_CASE("get_neighbors: top-left corner wraps correctly", "[neighbors]") {
     // (0,0): up→(4,0)=20, down→(1,0)=5, right→(0,1)=1, left→(0,4)=4
     auto neighbors = sim.get_neighbors(0, 0);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {1, 4, 5, 20};
+    std::array<size_t, 4> expected = {1, 4, 5, 20};
     REQUIRE(neighbors == expected);
 }
 
@@ -72,7 +72,7 @@ TEST_CASE("get_neighbors: bottom-right corner wraps correctly", "[neighbors]") {
     // (4,4): up→(3,4)=19, down→(0,4)=4, right→(4,0)=20, left→(4,3)=23
     auto neighbors = sim.get_neighbors(4, 4);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {4, 19, 20, 23};
+    std::array<size_t, 4> expected = {4, 19, 20, 23};
     REQUIRE(neighbors == expected);
 }
 
@@ -81,7 +81,7 @@ TEST_CASE("get_neighbors: top-right corner wraps correctly", "[neighbors]") {
     // (0,4): up→(4,4)=24, down→(1,4)=9, right→(0,0)=0, left→(0,3)=3
     auto neighbors = sim.get_neighbors(0, 4);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {0, 3, 9, 24};
+    std::array<size_t, 4> expected = {0, 3, 9, 24};
     REQUIRE(neighbors == expected);
 }
 
@@ -90,7 +90,7 @@ TEST_CASE("get_neighbors: first row wraps up to last row", "[neighbors]") {
     // (0,2): up→(3,2)=14, down→(1,2)=6, right→(0,3)=3, left→(0,1)=1
     auto neighbors = sim.get_neighbors(0, 2);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {1, 3, 6, 14};
+    std::array<size_t, 4> expected = {1, 3, 6, 14};
     REQUIRE(neighbors == expected);
 }
 
@@ -99,7 +99,7 @@ TEST_CASE("get_neighbors: first col wraps left to last col", "[neighbors]") {
     // (2,0): up→(1,0)=4, down→(3,0)=12, right→(2,1)=9, left→(2,3)=11
     auto neighbors = sim.get_neighbors(2, 0);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {4, 9, 11, 12};
+    std::array<size_t, 4> expected = {4, 9, 11, 12};
     REQUIRE(neighbors == expected);
 }
 
@@ -108,7 +108,7 @@ TEST_CASE("get_neighbors: non-square grid correct", "[neighbors]") {
     // (1,3): up→(0,3)=3, down→(2,3)=15, right→(1,4)=10, left→(1,2)=8
     auto neighbors = sim.get_neighbors(1, 3);
     std::sort(neighbors.begin(), neighbors.end());
-    std::vector<size_t> expected = {3, 8, 10, 15};
+    std::array<size_t, 4> expected = {3, 8, 10, 15};
     REQUIRE(neighbors == expected);
 }
 
