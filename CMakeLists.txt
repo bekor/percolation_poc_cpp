@@ -45,6 +45,15 @@ configure_file(
     COPYONLY
 )
 
+# ── Common Lib ──────────────────────────────────────────────
+add_library(common STATIC
+    common/search.cpp
+    common/search.h
+)
+target_include_directories(common PUBLIC
+    ${CMAKE_SOURCE_DIR}/common
+)
+
 # ── Main executable ──────────────────────────────────────────────
 set(PERC_H 
     src/simulation.h
@@ -53,7 +62,6 @@ set(PERC_H
     src/state_dump.h
     src/config.h
     src/interaction.h
-    src/search.h
 )
 
 set(PERC_SRC
@@ -61,7 +69,6 @@ set(PERC_SRC
     src/interaction.cpp
     src/file_io.cpp
     src/config.cpp
-    src/search.cpp
     src/simulation.cpp
     src/state_dump.cpp
     src/main.cpp
@@ -73,6 +80,7 @@ target_include_directories(percolation_poc PRIVATE
     ${highfive_SOURCE_DIR}/include
 )
 target_link_libraries(percolation_poc PRIVATE
+    common
     nlohmann_json::nlohmann_json
     HighFive::HighFive
 )
@@ -92,13 +100,11 @@ set(ISING_H
     ising_model/h5parser.h
     ising_model/simulation.h
     ising_model/ising_simulation.h
-    ising_model/search.h
 )
 
 set(ISING_SRC
     ising_model/h5parser.cpp
     ising_model/metric_writer.cpp
-    ising_model/search.cpp
     ising_model/simulation.cpp
     ising_model/ising_simulation.cpp
     ising_model/main.cpp
@@ -111,6 +117,7 @@ target_include_directories(ising_model PRIVATE
 )
 
 target_link_libraries(ising_model PRIVATE
+    common
     HighFive::HighFive
     nlohmann_json::nlohmann_json
 )
@@ -130,7 +137,6 @@ set(PERC_H
     src/state_dump.h
     src/config.h
     src/interaction.h
-    src/search.h
 )
 
 set(PERC_SRC
@@ -138,23 +144,23 @@ set(PERC_SRC
     src/interaction.cpp
     src/file_io.cpp
     src/config.cpp
-    src/search.cpp
     src/simulation.cpp
     src/state_dump.cpp
 )
 
 set(ISING_TEST_SRC
     ising_model/ising_simulation.cpp
-    ising_model/search.cpp
 )
 
 add_executable(tests ${TEST_FILES} ${PERC_H} ${PERC_SRC} ${ISING_TEST_SRC})
 target_include_directories(tests PRIVATE
+    common
     src
     ising_model
     ${highfive_SOURCE_DIR}/include
 )
 target_link_libraries(tests PRIVATE
+    common
     Catch2::Catch2WithMain
     nlohmann_json::nlohmann_json
     HighFive::HighFive

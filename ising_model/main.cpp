@@ -81,7 +81,7 @@ void ising_simulation(const States& states, float beta, const IsingConfig& cfg){
 int main() {
     PercolationConfig   pcfg{(std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_1.h5"), 1.0f, 95.5f};
     UncorrelatedConfig  ucfg{(std::string(RESOURCES_DIR) + "/metrics_30x30_100_p.h5"), 1'000};
-    IsingConfig         icfg{{ 0.2f, 0.25f }, 1'000'000, false, false};
+    IsingConfig         icfg{{ 0.1f, 0.15f }, 1'000'000, false, false};
     // std::string filename = std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5";
     // std::string filename = RESOURCES_DIR/"percolation_metrics_60x60_50.h5";
 

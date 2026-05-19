@@ -22,37 +22,41 @@ TEST_CASE("bfs on fully connected matrix", "[bfs]") {
     // 1 1 1
     // 1 1 1
     // 1 1 1
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("111 111 111", 3, 3);
 
-    REQUIRE(bfs(matrix, 0, 0) == true);
-    REQUIRE(bfs(matrix, 1, 1) == true);
-    REQUIRE(bfs(matrix, 2, 2) == true);
+    REQUIRE(b.bfs(matrix.data(), 0, 0) == true);
+    REQUIRE(b.bfs(matrix.data(), 1, 1) == true);
+    REQUIRE(b.bfs(matrix.data(), 2, 2) == true);
 }
 
 TEST_CASE("bfs on empty matrix", "[bfs]") {
     // 0 0 0
     // 0 0 0
     // 0 0 0
+    BreathFirstSearch b{3,3};
     Matrix<bool> matrix{3, 3};
-    REQUIRE(bfs(matrix, 0, 0) == false);
+    REQUIRE(b.bfs(matrix.data(), 0, 0) == false);
 }
 
 TEST_CASE("bfs starting from inactive node", "[bfs]") {
     // 1 1 1
     // 0 0 1
     // 1 1 1
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("111 001 111", 3, 3);
-    REQUIRE(bfs(matrix, 1, 0) == false);
+    REQUIRE(b.bfs(matrix.data(), 1, 0) == false);
 }
 
 TEST_CASE("bfs on one path matrix", "[bfs]") {
     // 1 1 1
     // 1 0 0
     // 1 0 0
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("111 100 100", 3, 3);
-    REQUIRE(bfs(matrix, 0, 0) == true); // straight line
-    REQUIRE(bfs(matrix, 1, 0) == true);   // up and right
-    REQUIRE(bfs(matrix, 2, 0) == true);  // up and left
+    REQUIRE(b.bfs(matrix.data(), 0, 0) == true); // straight line
+    REQUIRE(b.bfs(matrix.data(), 1, 0) == true);   // up and right
+    REQUIRE(b.bfs(matrix.data(), 2, 0) == true);  // up and left
 }
 
 
@@ -60,26 +64,29 @@ TEST_CASE("bfs on partially connected matrix", "[bfs]") {
     // 1 1 0
     // 0 0 0
     // 0 0 1
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("110 000 001", 3, 3);
-    REQUIRE(bfs(matrix, 0, 0) == false);   // top-left cluster reachable
-    REQUIRE(bfs(matrix, 1, 0) == false);   // isolated node, reachable from itself
-    REQUIRE(bfs(matrix, 2, 0) == false);  // inactive node
+    REQUIRE(b.bfs(matrix.data(), 0, 0) == false);   // top-left cluster reachable
+    REQUIRE(b.bfs(matrix.data(), 1, 0) == false);   // isolated node, reachable from itself
+    REQUIRE(b.bfs(matrix.data(), 2, 0) == false);  // inactive node
 }
 
 TEST_CASE("bfs on edgecase continuous array", "[bfs]") {
     // 0 1 1
     // 1 0 1
     // 1 0 0
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("011 101 100", 3, 3);
-    REQUIRE(bfs(matrix, 1, 0) == false);  // previous can be idx 2
-    REQUIRE(bfs(matrix, 2, 0) == false);  // previous can be idx 5
+    REQUIRE(b.bfs(matrix.data(), 1, 0) == false);  // previous can be idx 2
+    REQUIRE(b.bfs(matrix.data(), 2, 0) == false);  // previous can be idx 5
 }
 
 TEST_CASE("bfs on edgecase co", "[bfs]") {
     // 0 1 1
     // 1 0 1
     // 1 0 0
+    BreathFirstSearch b{3,3};
     auto matrix = make_matrix("111 110 001", 3, 3);
-    REQUIRE(bfs(matrix, 0, 0) == true);  // previous can be idx 2
-    REQUIRE(bfs(matrix, 2, 0) == false);  // previous can be idx 5
+    REQUIRE(b.bfs(matrix.data(), 0, 0) == true);  // previous can be idx 2
+    REQUIRE(b.bfs(matrix.data(), 2, 0) == false);  // previous can be idx 5
 }

@@ -7,6 +7,7 @@ class BreathFirstSearch{
 public:
     BreathFirstSearch(u16 rows, u16 cols);
     bool bfs(const std::vector<uint8_t>& matrix, u16 row, u16 col);
+    bool bfs(const std::vector<bool>& matrix, u16 row, u16 col);
 private:
     void reset_visited();
     u16 rows;

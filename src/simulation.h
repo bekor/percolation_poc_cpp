@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
 #include "matrix.hpp"
+#include "search.h"
 
 #include <array>
 #include <cstdint>
@@ -19,7 +20,7 @@ struct Metrics {
 
 class Simulation {
 public:
-    Simulation(const Configuration& config): config(config) {};
+    Simulation(const Configuration& config);
     void run_simulation();
 
     const Metrics& get_metrics(){ return metrics; };
@@ -27,6 +28,7 @@ public:
 private:
     const Configuration& config;
     Metrics metrics{};
+    BreathFirstSearch search;
 
     void populate_prob_matrix(Matrix<u16>& matrix);
     void set_activation_matrix(u16 probability, const Matrix<u16>& prob_matrix, Matrix<bool>& matrix);

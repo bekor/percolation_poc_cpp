@@ -17,6 +17,9 @@ namespace {
     }
 }
 
+Simulation::Simulation(const Configuration& config): config(config), search(config.get_matrix_row(), config.get_matrix_col()) {
+};
+
 void Simulation::run_simulation(){
     Matrix<u16> probability_matrix{config.get_matrix_row(), config.get_matrix_col()};
     Matrix<bool> matrix{config.get_matrix_row(), config.get_matrix_col()};
@@ -48,7 +51,7 @@ void Simulation::run_simulation(){
             }
             metrics.activation_per_run.at(step) += population;
 
-            if(step >= 103 && step <= 119){
+            if(step >= 80 && step <= 140){
                 auto msg = "step : " + std::to_string(i) + " prob: " + std::to_string(prob);
                 info_print(msg);
                 u16 max = std::numeric_limits<u16>::max();
@@ -76,7 +79,7 @@ void Simulation::set_activation_matrix(u16 probability,
 bool Simulation::has_spanning_cluster(const Matrix<bool>& matrix) {
     bool end_reached = false;
     for(int row = 0; row < matrix.rows(); ++row){
-        end_reached = bfs(matrix, row, 0);
+        end_reached = search.bfs(matrix.data(), row, 0);
         if(end_reached)
             return end_reached;
     }
