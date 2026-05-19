@@ -7,13 +7,10 @@
 #include "random.hpp"
 #include "search.h"
 
-bool Simulation::has_spanning_cluster(std::vector<uint8_t> state, size_t rows, size_t cols) const {
+bool Simulation::has_spanning_cluster(const std::vector<uint8_t>& state) {
     bool end_reached = false;
-    std::vector<uint32_t> visited(rows * cols, 0);
-    uint32_t visit_id = 1;
     for(size_t row = 0; row < rows; ++row){
-        end_reached = bfs(state, rows, cols, row, 0, visited, visit_id);
-        visit_id++;
+        end_reached = search.bfs(state, row, 0);
         if(end_reached)
             return end_reached;
     }
@@ -33,8 +30,7 @@ bool Simulation::act_on_matrix(std::vector<uint8_t>& matrix, std::vector<size_t>
     return true;
 }
 
-Metric Simulation::run_simulation(const std::vector<uint8_t>& state, 
-                                            size_t rows, size_t cols, 
+Metric Simulation::run_simulation(const std::vector<uint8_t>& state,
                                             uint16_t original_activation,
                                             uint16_t simulation_number) 
 {
@@ -51,12 +47,12 @@ Metric Simulation::run_simulation(const std::vector<uint8_t>& state,
             deactive_pos.push_back(i);
     }
 
-    auto is_spanning = has_spanning_cluster(matrix, rows, cols);
+    auto is_spanning = has_spanning_cluster(matrix);
     for(uint16_t i = 0; i < simulation_number; ++i) {
         auto is_changed = act_on_matrix(matrix, active_pos, deactive_pos);
 
         if(is_changed)
-            is_spanning = has_spanning_cluster(matrix, rows, cols);
+            is_spanning = has_spanning_cluster(matrix);
         if(is_spanning) spanning_count++;
 
         // save metric

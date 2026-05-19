@@ -42,11 +42,11 @@ void uncorrelated_simulation(const States& states, const UncorrelatedConfig& cfg
     size_t simulation_number = 1000;
 
     MetricWriter writer(metrics_file, states.rows, states.cols, states.count, cfg.sim_count);
-    Simulation usim;
+    Simulation usim{states.rows, states.cols};
     
     for(size_t i = 0; i < states.count; ++i) {
         std::cout << "index: " << i << " percent: " << states.percents[i] << std::endl;
-        auto current_metric = usim.run_simulation(states.matrices[i], states.rows, states.cols, 
+        auto current_metric = usim.run_simulation(states.matrices[i], 
                                                     states.activations[i], cfg.sim_count);
         current_metric.probability = states.percents[i];
         writer.write(current_metric);
@@ -79,9 +79,9 @@ void ising_simulation(const States& states, float beta, const IsingConfig& cfg){
 }
 
 int main() {
-    PercolationConfig   pcfg{(std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5"), 1.0f, 95.5f};
+    PercolationConfig   pcfg{(std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_1.h5"), 1.0f, 95.5f};
     UncorrelatedConfig  ucfg{(std::string(RESOURCES_DIR) + "/metrics_30x30_100_p.h5"), 1'000};
-    IsingConfig         icfg{{ 0.1f, 0.15f, 0.2f, 0.25f }, 1'000'000, false, false};
+    IsingConfig         icfg{{ 0.2f, 0.25f }, 1'000'000, false, false};
     // std::string filename = std::string(RESOURCES_DIR) + "/percolation_metrics_30x30_100.h5";
     // std::string filename = RESOURCES_DIR/"percolation_metrics_60x60_50.h5";
 

@@ -9,11 +9,8 @@
 constexpr float CRITICAL_TEMP{2.27};
 constexpr float CRITICAL_BETA{1.0f / CRITICAL_TEMP}; // ≈ 0.4405
 
-IsingSimulation::IsingSimulation(size_t rows, size_t cols) : rows(rows), cols(cols){
+IsingSimulation::IsingSimulation(size_t rows, size_t cols) : rows(rows), cols(cols), search(rows, cols){
     precaculate_neighbors();
-    size_t len = rows * cols;
-    visited.assign(len, 0);
-    visit_id = 1;
 }
 
 void IsingSimulation::precaculate_neighbors(){
@@ -37,13 +34,7 @@ void IsingSimulation::precaculate_neighbors(){
 bool IsingSimulation::has_spanning_cluster(const std::vector<uint8_t>& state) {
     bool end_reached = false;
     for(size_t row = 0; row < rows; ++row){
-        end_reached = bfs(state, rows, cols, row, 0, visited, visit_id);
-        visit_id++;
-        if(visit_id == std::numeric_limits<uint32_t>::max())
-        {
-            std::fill(visited.begin(), visited.end(), 0);
-            visit_id = 1;
-        }
+        end_reached = search.bfs(state, row, 0);
         if(end_reached)
             return end_reached;
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include "metric.hpp"
+#include "search.h"
 #include <array>
 #include <vector>
 
@@ -26,8 +27,8 @@ public:
 private:
     size_t rows;
     size_t cols;
+    BreathFirstSearch search;
+
     std::vector<std::array<size_t,4>> neighbor_table;
-    std::vector<uint32_t> visited;
-    uint32_t visit_id;
     void precaculate_neighbors();
 };
